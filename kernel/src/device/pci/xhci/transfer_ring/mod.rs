@@ -36,19 +36,19 @@ impl<T: TrbType> Index<usize> for Ring<T> {
     }
 }
 
-pub struct RingQueue<T: TrbType + 'static> {
+pub struct RingHandler<T: TrbType + 'static> {
     queue: &'static Ring<T>,
     dequeue_index: usize,
     cycle_bit: CycleBit,
 }
 
-impl<T: TrbType + 'static> RingQueue<T> {
+impl<T: TrbType + 'static> RingHandler<T> {
     pub fn addr(&self) -> VirtAddr {
         VirtAddr::new(self.queue as *const _ as _)
     }
 }
 
-impl RingQueue<Event> {
+impl RingHandler<Event> {
     pub fn new() -> Self {
         Self {
             queue: &EVENT_RING,
@@ -75,7 +75,7 @@ impl RingQueue<Event> {
     }
 }
 
-impl RingQueue<Command> {
+impl RingHandler<Command> {
     pub fn new() -> Self {
         Self {
             queue: &COMMAND_RING,
