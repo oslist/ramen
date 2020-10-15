@@ -85,17 +85,20 @@ impl From<TableOffset> for Size<Bytes> {
 }
 
 #[derive(Debug)]
-struct TableSize(u32);
-impl TableSize {
-    fn new(raw: &Registers, base: RegisterIndex) -> Self {
-        // Table size is N - 1 encoded.
-        // See: https://wiki.osdev.org/PCI#Enabling_MSI-X
-        Self(((raw.get(base) >> 16) & 0x7ff) + 1)
+struct TableSize<'a> {
+    registers: &'a Registers,
+    base: RegisterIndex,
+}
+impl<'a> TableSize<'a> {
+    fn new(registers: &'a Registers, base: RegisterIndex) -> Self {
+        Self { registers, base }
     }
 }
-impl From<TableSize> for usize {
+impl<'a> From<TableSize<'a>> for usize {
     fn from(size: TableSize) -> Self {
-        usize::try_from(size.0).unwrap()
+        // Table size is N - 1 encoded.
+        // See: https://wiki.osdev.org/PCI#Enabling_MSI-X
+        usize::try_from(((size.registers.get(size.base) >> 16) & 0x7ff) + 1).unwrap()
     }
 }
 
