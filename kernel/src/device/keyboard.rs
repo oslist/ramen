@@ -23,6 +23,23 @@ use {
 static SCANCODE_QUEUE: OnceCell<ArrayQueue<u8>> = OnceCell::uninit();
 static WAKER: AtomicWaker = AtomicWaker::new();
 
+pub async fn task() {
+    ScancodeStream::init_queue();
+
+    enable_keyboard();
+
+    let mut scancode_stream = ScancodeStream;
+
+    while let Some(code) = scancode_stream.next().await {
+        Screen::draw_rectangle(
+            RGB8::new(0, 0x84, 0x84),
+            Vec2::new(0, 16),
+            Vec2::new(15, 31),
+        );
+        info!("{:} pressed.", code as char);
+    }
+}
+
 pub fn enqueue_scancode(code: u8) {
     match SCANCODE_QUEUE.try_get() {
         Ok(queue) => {
@@ -62,23 +79,6 @@ impl Stream for ScancodeStream {
             }
             None => Poll::Pending,
         }
-    }
-}
-
-pub async fn task() {
-    ScancodeStream::init_queue();
-
-    enable_keyboard();
-
-    let mut scancode_stream = ScancodeStream;
-
-    while let Some(code) = scancode_stream.next().await {
-        Screen::draw_rectangle(
-            RGB8::new(0, 0x84, 0x84),
-            Vec2::new(0, 16),
-            Vec2::new(15, 31),
-        );
-        info!("{:} pressed.", code as char);
     }
 }
 
