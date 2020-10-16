@@ -15,6 +15,7 @@ extern crate log;
 
 extern crate x86_64;
 
+mod acpi;
 mod exit;
 mod fs;
 mod gop;
