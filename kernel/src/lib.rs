@@ -57,7 +57,7 @@ fn initialization(boot_info: &mut kernelboot::Info) {
 
     gdt::init();
     idt::init();
-    interrupt::init_pic();
+    interrupt::init_apic();
 
     interrupts::enable();
 
