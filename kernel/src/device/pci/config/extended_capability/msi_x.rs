@@ -25,7 +25,12 @@ impl<'a> CapabilitySpec for MsiX<'a> {
 
         table[0].init_for_xhci();
 
+        self.pending_bit_table(base_address)[0] = 1;
         self.enable_interrupt();
+        info!(
+            "The value of pending bit: {}",
+            self.pending_bit_table(base_address)[0]
+        );
     }
 }
 
@@ -46,8 +51,16 @@ impl<'a> MsiX<'a> {
         )
     }
 
+    fn pending_bit_table(&self, base_address: PhysAddr) -> slice::Accessor<u64> {
+        slice::Accessor::new(
+            base_address,
+            self.pending_table_offset(),
+            (usize::from(self.num_of_table_elements()) + 64 - 1) / 64,
+        )
+    }
+
     fn enable_interrupt(&self) {
-        let val = self.registers.get(self.base) | 0x8000_0000;
+        let val = self.registers.get(self.base) | 0xf000_0000;
         self.registers.set(self.base, val);
     }
 
@@ -57,6 +70,10 @@ impl<'a> MsiX<'a> {
 
     fn num_of_table_elements(&self) -> TableSize {
         TableSize::new(self.registers, self.base)
+    }
+
+    fn pending_table_offset(&self) -> Size<Bytes> {
+        Size::from(PendingBitTableOffset::new(self.registers, self.base))
     }
 }
 
@@ -75,7 +92,7 @@ impl From<Bir> for bar::Index {
 struct TableOffset(Size<Bytes>);
 impl TableOffset {
     fn new(registers: &Registers, base: RegisterIndex) -> Self {
-        Self(Size::new((registers.get(base + 1) & !0x7) as usize))
+        Self(Size::new((registers.get(base + 1) & !0b111) as usize))
     }
 }
 impl From<TableOffset> for Size<Bytes> {
@@ -116,5 +133,32 @@ impl Element {
         self.message_address().init_for_xhci();
         self.message_data().init_for_xhci();
         self.set_mask(false);
+    }
+}
+
+#[derive(Debug)]
+struct PendingBitBir<'a> {
+    registers: &'a Registers,
+    base: RegisterIndex,
+}
+impl<'a> From<PendingBitBir<'a>> for bar::Index {
+    fn from(bir: PendingBitBir) -> Self {
+        bar::Index::new(bir.registers.get(bir.base + 2) & 0b111)
+    }
+}
+
+#[derive(Debug)]
+struct PendingBitTableOffset<'a> {
+    registers: &'a Registers,
+    base: RegisterIndex,
+}
+impl<'a> PendingBitTableOffset<'a> {
+    fn new(registers: &'a Registers, base: RegisterIndex) -> Self {
+        Self { registers, base }
+    }
+}
+impl<'a> From<PendingBitTableOffset<'a>> for Size<Bytes> {
+    fn from(pending: PendingBitTableOffset) -> Self {
+        Size::new(usize::try_from(pending.registers.get(pending.base + 2) & !0b111).unwrap())
     }
 }

@@ -134,6 +134,7 @@ impl From<NextPointer> for RegisterIndex {
 }
 
 bitfield! {
+    #[repr(transparent)]
     pub struct MessageAddress(u32);
 
     redirection_hint, set_redirection_hint: 3;
@@ -168,6 +169,7 @@ impl From<u32> for MessageAddress {
 }
 
 bitfield! {
+    #[repr(transparent)]
     pub struct MessageData(u32);
 
     vector, set_vector: 7, 0;
