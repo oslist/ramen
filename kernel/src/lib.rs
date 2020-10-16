@@ -79,8 +79,6 @@ fn initialization(boot_info: &mut kernelboot::Info) {
         "The number of PCI devices: {}",
         device::pci::iter_devices().count()
     );
-
-    interrupt::set_init_pic_bits();
 }
 
 #[cfg(not(feature = "qemu_test"))]
