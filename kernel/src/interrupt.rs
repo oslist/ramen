@@ -21,6 +21,7 @@ const PIC1_ICW4: u16 = 0x00A1;
 
 pub fn init_apic() {
     init_pic();
+    mask_all_pic();
 }
 
 fn init_pic() {
@@ -29,6 +30,13 @@ fn init_pic() {
     set_irq_receiver();
     set_connection();
     enable_nonbuffer_mode();
+}
+
+fn mask_all_pic() {
+    unsafe {
+        Port::new(PIC0_IMR).write(0xFF as u8);
+        Port::new(PIC1_IMR).write(0xFF as u8);
+    }
 }
 
 fn enable_interrupts_from_only_mouse_and_keyboard() {
