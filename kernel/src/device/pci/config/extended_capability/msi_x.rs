@@ -23,14 +23,11 @@ impl<'a> CapabilitySpec for MsiX<'a> {
         let base_address = config_type_spec.base_address(self.bir());
         let mut table = self.table(base_address);
 
+        let pending_base = config_type_spec.base_address(self.pending_bir());
+        self.pending_bit_table(pending_base)[0] = 1;
         table[0].init_for_xhci();
 
-        self.pending_bit_table(base_address)[0] = 1;
         self.enable_interrupt();
-        info!(
-            "The value of pending bit: {}",
-            self.pending_bit_table(base_address)[0]
-        );
     }
 }
 
@@ -70,6 +67,10 @@ impl<'a> MsiX<'a> {
 
     fn num_of_table_elements(&self) -> TableSize {
         TableSize::new(self.registers, self.base)
+    }
+
+    fn pending_bir(&self) -> bar::Index {
+        bar::Index::from(PendingBitBir::new(self.registers, self.base))
     }
 
     fn pending_table_offset(&self) -> Size<Bytes> {
@@ -140,6 +141,11 @@ impl Element {
 struct PendingBitBir<'a> {
     registers: &'a Registers,
     base: RegisterIndex,
+}
+impl<'a> PendingBitBir<'a> {
+    fn new(registers: &'a Registers, base: RegisterIndex) -> Self {
+        Self { registers, base }
+    }
 }
 impl<'a> From<PendingBitBir<'a>> for bar::Index {
     fn from(bir: PendingBitBir) -> Self {
