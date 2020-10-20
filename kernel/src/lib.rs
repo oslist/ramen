@@ -34,7 +34,7 @@ mod panic;
 
 use {
     common::kernelboot,
-    device::{keyboard, mouse, pci::xhci},
+    device::{ahci, keyboard, mouse, pci::xhci},
     graphics::{
         screen::{self, desktop::Desktop, layer},
         Vram,
@@ -89,6 +89,7 @@ fn run_tasks() -> ! {
     executor.spawn(Task::new(keyboard::task()));
     executor.spawn(Task::new(mouse::task()));
     executor.spawn(Task::new(xhci::task()));
+    executor.spawn(Task::new(ahci::task()));
     executor.run();
 }
 
