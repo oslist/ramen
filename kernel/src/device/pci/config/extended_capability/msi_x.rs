@@ -131,8 +131,14 @@ bitfield! {
 }
 impl Element {
     fn init_for_xhci(&mut self) {
-        self.message_address().init_for_xhci();
-        self.message_data().init_for_xhci();
+        let mut addr = self.message_address();
+        addr.init_for_xhci();
+        self.set_message_address(addr);
+
+        let mut data = self.message_data();
+        data.init_for_xhci();
+        self.set_message_data(data);
+
         self.set_mask(false);
     }
 }
