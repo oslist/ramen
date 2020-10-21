@@ -57,7 +57,7 @@ impl<'a> MsiX<'a> {
     }
 
     fn enable_interrupt(&self) {
-        let val = self.registers.get(self.base) | 0xf000_0000;
+        let val = self.registers.get(self.base) | 0x8000_0000;
         self.registers.set(self.base, val);
     }
 
