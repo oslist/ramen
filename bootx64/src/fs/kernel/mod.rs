@@ -42,15 +42,7 @@ pub fn fetch_entry_address_and_memory_size(
     addr: PhysAddr,
     bytes: Size<Bytes>,
 ) -> (VirtAddr, Size<Bytes>) {
-    let elf =
-        Elf::from_bytes(unsafe { slice::from_raw_parts(addr.as_u64() as _, bytes.as_usize()) });
-
-    let elf = match elf {
-        Ok(elf) => elf,
-        Err(e) => panic!("Could not get ELF information from the kernel: {:?}", e),
-    };
-
-    match elf {
+    match fetch_kernel_elf_header(addr, bytes) {
         Elf::Elf32(_) => panic!("32-bit kernel is not supported"),
         Elf::Elf64(elf) => {
             let entry_addr = VirtAddr::new(elf.header().entry_point());
@@ -69,6 +61,16 @@ pub fn fetch_entry_address_and_memory_size(
 
             (entry_addr, mem_size)
         }
+    }
+}
+
+fn fetch_kernel_elf_header(addr: PhysAddr, bytes: Size<Bytes>) -> Elf<'static> {
+    let elf =
+        Elf::from_bytes(unsafe { slice::from_raw_parts(addr.as_u64() as _, bytes.as_usize()) });
+
+    match elf {
+        Ok(elf) => elf,
+        Err(e) => panic!("Could not get ELF information from the kernel: {:?}", e),
     }
 }
 
