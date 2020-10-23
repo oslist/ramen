@@ -64,6 +64,24 @@ pub fn fetch_entry_address_and_memory_size(
     }
 }
 
+pub fn get_kernel_stack_addr_and_size<'a>(elf_header: &Elf<'a>) -> (VirtAddr, Size<Bytes>) {
+    match elf_header {
+        Elf::Elf32(_) => panic!("Kernel must not be 32-bit!"),
+        Elf::Elf64(elf) => {
+            for header in elf.section_header_iter() {
+                if header.section_name() == ".stack" {
+                    return (
+                        VirtAddr::new(header.sh.addr()),
+                        Size::new(usize::try_from(header.sh.size()).unwrap()),
+                    );
+                }
+            }
+
+            unreachable!()
+        }
+    }
+}
+
 fn fetch_kernel_elf_header(addr: PhysAddr, bytes: Size<Bytes>) -> Elf<'static> {
     let elf =
         Elf::from_bytes(unsafe { slice::from_raw_parts(addr.as_u64() as _, bytes.as_usize()) });
