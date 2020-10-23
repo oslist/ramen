@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::root_dir;
-use common::constant::{KERNEL_ADDR, KERNEL_NAME};
-use core::cmp;
-use core::convert::TryFrom;
-use core::slice;
-use elf_rs::Elf;
-use os_units::{Bytes, Size};
-use uefi::proto::media::file;
-use uefi::proto::media::file::File;
-use uefi::proto::media::file::FileAttribute;
-use uefi::proto::media::file::FileMode;
-use uefi::table::boot;
-use uefi::table::boot::{AllocateType, MemoryType};
-use uefi::ResultExt;
-use x86_64::structures::paging::Size4KiB;
-use x86_64::{PhysAddr, VirtAddr};
+use {
+    super::root_dir,
+    common::constant::{KERNEL_ADDR, KERNEL_NAME},
+    core::{cmp, convert::TryFrom, slice},
+    elf_rs::Elf,
+    os_units::{Bytes, Size},
+    uefi::{
+        proto::media::file::{self, File, FileAttribute, FileMode},
+        table::boot::{self, AllocateType, MemoryType},
+        ResultExt,
+    },
+    x86_64::{
+        structures::paging::Size4KiB,
+        {PhysAddr, VirtAddr},
+    },
+};
 
 mod size;
 
