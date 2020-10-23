@@ -11,6 +11,8 @@ SECTIONS
 
     . += 0xffffffff80000000 + SIZEOF_HEADERS;
 
+    stack_size = 0x10000;
+
     .text BLOCK(4K) : ALIGN(4K) {
         *(.text*)
     } > kernel
@@ -29,5 +31,9 @@ SECTIONS
 
     .eh_frame : {
         *(.eh_frame)
+    } > kernel
+
+    .stack : {
+        . += stack_size;
     } > kernel
 }
