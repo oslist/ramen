@@ -64,7 +64,7 @@ pub fn fetch_entry_address_and_memory_size(
     }
 }
 
-pub fn get_kernel_stack_addr_and_size<'a>(elf_header: &Elf<'a>) -> (VirtAddr, Size<Bytes>) {
+pub fn get_kernel_stack_addr_and_size(elf_header: &Elf) -> (VirtAddr, Size<Bytes>) {
     match elf_header {
         Elf::Elf32(_) => panic!("Kernel must not be 32-bit!"),
         Elf::Elf64(elf) => {
