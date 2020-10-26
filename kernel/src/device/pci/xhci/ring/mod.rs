@@ -10,29 +10,39 @@ pub mod command;
 pub mod event;
 mod trb;
 
-struct Raw(PageBox<[trb::Raw]>);
+struct Raw {
+    arr: PageBox<[trb::Raw]>,
+    enqueue_ptr: usize,
+    dequeue_ptr: usize,
+    cycle_bit: CycleBit,
+}
 impl Raw {
     fn new(num_trb: usize) -> Self {
-        Self(PageBox::new_slice(num_trb))
+        Self {
+            arr: PageBox::new_slice(num_trb),
+            enqueue_ptr: 0,
+            dequeue_ptr: 0,
+            cycle_bit: CycleBit::new(true),
+        }
     }
 
     fn len(&self) -> usize {
-        self.0.len()
+        self.arr.len()
     }
 
     fn phys_addr(&self) -> PhysAddr {
-        self.0.phys_addr()
+        self.arr.phys_addr()
     }
 }
 impl Index<usize> for Raw {
     type Output = trb::Raw;
     fn index(&self, index: usize) -> &Self::Output {
-        &self.0[index]
+        &self.arr[index]
     }
 }
 impl IndexMut<usize> for Raw {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.0[index]
+        &mut self.arr[index]
     }
 }
 
