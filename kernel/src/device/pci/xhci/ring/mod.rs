@@ -3,6 +3,7 @@
 use {
     crate::mem::allocator::page_box::PageBox,
     core::ops::{Index, IndexMut},
+    trb::Trb,
     x86_64::PhysAddr,
 };
 
@@ -32,6 +33,21 @@ impl Raw {
 
     fn phys_addr(&self) -> PhysAddr {
         self.arr.phys_addr()
+    }
+
+    fn enqueue(&mut self, trb: Trb) {
+        if !self.enqueueable() {
+            return;
+        }
+        self.arr[self.enqueue_ptr] = trb.into();
+
+        self.enqueue_ptr += 1;
+        if self.enqueue_ptr < self.len() {
+            return;
+        }
+
+        self.enqueue_ptr %= self.len();
+        self.cycle_bit.toggle();
     }
 
     fn enqueueable(&self) -> bool {
