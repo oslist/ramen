@@ -54,6 +54,11 @@ impl Raw {
         let raw = self.arr[self.enqueue_ptr];
         raw.cycle_bit() != self.cycle_bit
     }
+
+    fn dequeueable(&self) -> bool {
+        let raw = self.arr[self.dequeue_ptr];
+        raw.cycle_bit() == self.cycle_bit
+    }
 }
 impl Index<usize> for Raw {
     type Output = trb::Raw;
