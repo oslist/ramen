@@ -3,7 +3,6 @@
 use {
     crate::mem::allocator::page_box::PageBox,
     core::ops::{Index, IndexMut},
-    trb::Trb,
     x86_64::PhysAddr,
 };
 
@@ -13,15 +12,17 @@ mod trb;
 
 struct Raw {
     arr: PageBox<[trb::Raw]>,
-    enqueue_ptr: Ptr,
-    dequeue_ptr: Ptr,
+    enqueue_ptr: usize,
+    dequeue_ptr: usize,
+    cycle_bit: CycleBit,
 }
 impl Raw {
     fn new(num_trb: usize) -> Self {
         Self {
             arr: PageBox::new_slice(num_trb),
-            enqueue_ptr: Ptr::new(),
-            dequeue_ptr: Ptr::new(),
+            enqueue_ptr: 0,
+            dequeue_ptr: 0,
+            cycle_bit: CycleBit::new(true),
         }
     }
 
@@ -42,19 +43,6 @@ impl Index<usize> for Raw {
 impl IndexMut<usize> for Raw {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.arr[index]
-    }
-}
-
-struct Ptr {
-    index: usize,
-    cycle_bit: CycleBit,
-}
-impl Ptr {
-    fn new() -> Self {
-        Self {
-            index: 0,
-            cycle_bit: CycleBit::new(true),
-        }
     }
 }
 
