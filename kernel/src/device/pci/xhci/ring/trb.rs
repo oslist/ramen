@@ -67,7 +67,7 @@ impl From<Raw> for Noop {
 #[derive(Copy, Clone)]
 pub struct Raw(u128);
 impl Raw {
-    fn cycle_bit(self) -> CycleBit {
+    pub fn cycle_bit(self) -> CycleBit {
         self.into()
     }
 }

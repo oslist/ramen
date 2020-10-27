@@ -33,6 +33,11 @@ impl Raw {
     fn phys_addr(&self) -> PhysAddr {
         self.arr.phys_addr()
     }
+
+    fn enqueueable(&self) -> bool {
+        let raw = self.arr[self.enqueue_ptr];
+        raw.cycle_bit() != self.cycle_bit
+    }
 }
 impl Index<usize> for Raw {
     type Output = trb::Raw;
@@ -47,7 +52,7 @@ impl IndexMut<usize> for Raw {
 }
 
 #[derive(PartialOrd, Ord, PartialEq, Eq)]
-struct CycleBit(bool);
+pub struct CycleBit(bool);
 impl CycleBit {
     fn new(val: bool) -> Self {
         Self(val)
