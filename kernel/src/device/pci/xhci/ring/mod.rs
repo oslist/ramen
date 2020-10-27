@@ -2,7 +2,10 @@
 
 use {
     crate::mem::allocator::page_box::PageBox,
-    core::ops::{Index, IndexMut},
+    core::{
+        convert::TryInto,
+        ops::{Index, IndexMut},
+    },
     trb::Trb,
     x86_64::PhysAddr,
 };
@@ -53,6 +56,28 @@ impl Raw {
     fn enqueueable(&self) -> bool {
         let raw = self.arr[self.enqueue_ptr];
         raw.cycle_bit() != self.cycle_bit
+    }
+
+    fn dequeue(&mut self) -> Option<Trb> {
+        if !self.dequeueable() {
+            return None;
+        }
+
+        let trb = match self.arr[self.dequeue_ptr].try_into() {
+            Ok(trb) => trb,
+            Err(e) => {
+                warn!("Failed to convert to TRB: {:?}", e);
+                return None;
+            }
+        };
+
+        self.dequeue_ptr += 1;
+        if self.dequeue_ptr >= self.len() {
+            self.dequeue_ptr %= self.len();
+            self.cycle_bit.toggle();
+        }
+
+        Some(trb)
     }
 
     fn dequeueable(&self) -> bool {
