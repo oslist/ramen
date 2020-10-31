@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::{super::paging::pml4::PML4, phys::FRAME_MANAGER, virt},
+    super::{
+        super::paging::pml4::PML4,
+        phys::{self, FRAME_MANAGER},
+        virt,
+    },
     core::{
         convert::TryFrom,
         marker::PhantomData,
@@ -60,10 +64,7 @@ impl<T: ?Sized> PageBox<T> {
         let virt_addr =
             virt::search_free_addr(num_of_pages).expect("OOM during creating `PageBox`");
 
-        let phys_addr = FRAME_MANAGER
-            .lock()
-            .alloc(num_of_pages)
-            .expect("OOM during creating `PageBox");
+        let phys_addr = phys::alloc(num_of_pages).expect("OOM during creating `PageBox");
 
         for i in 0..u64::try_from(num_of_pages.as_usize()).unwrap() {
             let page =

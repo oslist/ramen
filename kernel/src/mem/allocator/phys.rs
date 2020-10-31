@@ -17,6 +17,10 @@ use {
 pub static FRAME_MANAGER: Lazy<Spinlock<FrameManager>> =
     Lazy::new(|| Spinlock::new(FrameManager(VecDeque::new())));
 
+pub fn alloc(num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
+    FRAME_MANAGER.lock().alloc(num_of_pages)
+}
+
 pub struct FrameManager(VecDeque<Frames>);
 impl FrameManager {
     pub fn init(mem_map: &[boot::MemoryDescriptor]) {
@@ -24,7 +28,7 @@ impl FrameManager {
         paging::mark_pages_as_unused();
     }
 
-    pub fn alloc(&mut self, num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
+    fn alloc(&mut self, num_of_pages: NumOfPages<Size4KiB>) -> Option<PhysAddr> {
         let num_of_pages = NumOfPages::new(num_of_pages.as_usize().next_power_of_two());
 
         for i in 0..self.0.len() {
