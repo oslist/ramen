@@ -32,10 +32,7 @@ pub struct Xhci {
 
 impl<'a> Xhci {
     fn init(&mut self) {
-        self.get_ownership_from_bios();
-        self.reset();
-        self.wait_until_ready();
-        self.set_num_of_enabled_slots();
+        self.init_registers();
         self.set_dcbaap();
         self.set_command_ring_pointer();
         self.set_event_ring_dequeue_pointer();
@@ -45,20 +42,8 @@ impl<'a> Xhci {
         self.issue_noop();
     }
 
-    fn get_ownership_from_bios(&mut self) {
-        self.registers.transfer_hc_ownership_to_os();
-    }
-
-    fn reset(&mut self) {
-        self.registers.reset_hc()
-    }
-
-    fn wait_until_ready(&self) {
-        self.registers.wait_until_hc_is_ready();
-    }
-
-    fn set_num_of_enabled_slots(&mut self) {
-        self.registers.init_num_of_slots()
+    fn init_registers(&mut self) {
+        self.registers.init();
     }
 
     fn set_dcbaap(&mut self) {

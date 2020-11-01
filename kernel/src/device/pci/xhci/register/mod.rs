@@ -43,6 +43,13 @@ impl Registers {
         }
     }
 
+    pub fn init(&mut self) {
+        self.transfer_hc_ownership_to_os();
+        self.reset_hc();
+        self.wait_until_hc_is_ready();
+        self.init_num_of_slots();
+    }
+
     pub fn max_num_of_erst(&self) -> MaxNumOfErst {
         self.hc_capability_registers.max_num_of_erst()
     }
