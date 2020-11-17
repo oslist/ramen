@@ -26,7 +26,7 @@ impl CommandList {
 }
 
 #[derive(Copy, Clone)]
-pub struct CommandHeader(CommandHeaderStructure<[u32; 8]>);
+pub struct CommandHeader(pub CommandHeaderStructure<[u32; 8]>);
 impl CommandHeader {
     fn null() -> Self {
         Self(CommandHeaderStructure::null())
@@ -37,6 +37,8 @@ bitfield! {
     #[derive(Copy,Clone)]
     pub struct CommandHeaderStructure([u32]);
     impl Debug;
+    pub u8, _, set_command_list_length: 4, 0;
+    pub u16, _, physical_region_descriptor_table_length: 31, 16;
 }
 impl CommandHeaderStructure<[u32; 8]> {
     fn null() -> Self {
