@@ -1,14 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 mod command_list;
+mod fis;
 mod received_fis;
 
 use {
     super::registers::{port, Registers},
-    crate::multitask::task::{self, Task},
+    crate::{
+        mem::allocator::page_box::PageBox,
+        multitask::task::{self, Task},
+    },
     alloc::rc::Rc,
     command_list::CommandList,
-    core::{cell::RefCell, convert::TryInto},
+    core::{cell::RefCell, convert::TryInto, mem},
+    fis::RegFixH2D,
     received_fis::ReceivedFis,
 };
 
@@ -32,10 +37,8 @@ async fn task(mut port: Port) {
     port.init();
     port.start();
 
-    info!(
-        "Available command slot: {:?}",
-        port.get_available_command_slot()
-    );
+    let buf = port.read();
+    info!("Buf: {:?}", buf);
 }
 
 pub struct Port {
@@ -131,11 +134,6 @@ impl Port {
     fn start(&mut self) {
         if self.ready_to_start() {
             self.start_processing();
-            info!(
-                "Port {} signature: {:X}.",
-                self.index,
-                self.parse_port_rg(|r| r.sig.read().get())
-            );
         }
     }
 
@@ -160,6 +158,58 @@ impl Port {
 
     fn start_processing(&mut self) {
         self.edit_port_rg(|r| r.cmd.update(|r| r.set_start_bit(true)))
+    }
+
+    fn read(&mut self) -> PageBox<[u8]> {
+        let mut buf = PageBox::new_slice(0, 512);
+        self.init_command_list_for_reading_sectors(1, &mut buf);
+        buf
+    }
+
+    fn init_command_list_for_reading_sectors(&mut self, sector_cnt: u16, buf: &mut PageBox<[u8]>) {
+        self.init_command_header_and_table(sector_cnt, buf).unwrap();
+    }
+
+    fn init_command_header_and_table(
+        &mut self,
+        sector_cnt: u16,
+        buf: &mut PageBox<[u8]>,
+    ) -> Result<(), Error> {
+        let slot_index = self
+            .get_available_command_slot()
+            .ok_or(Error::SlotIsNotAvailable)?;
+        self.init_command_list_header(slot_index, sector_cnt);
+        self.init_command_table(slot_index, sector_cnt, buf);
+        self.init_fis(slot_index);
+        self.edit_port_rg(|r| r.ci.update(|ci| ci.issue(slot_index)));
+
+        while self.parse_port_rg(|r| r.ci.read().get() & (1 << slot_index) != 0) {}
+
+        Ok(())
+    }
+
+    fn init_command_list_header(&mut self, slot_index: usize, sector_cnt: u16) {
+        let header = &mut self.command_list.headers[slot_index];
+        header.set_cfl((mem::size_of::<RegFixH2D>() / mem::size_of::<u32>()) as u8);
+        header.set_prdtl(((sector_cnt - 1) >> 4) + 1);
+    }
+
+    fn init_command_table(&mut self, slot_index: usize, sector_cnt: u16, buf: &mut PageBox<[u8]>) {
+        let prdtl: usize = self.command_list.headers[slot_index].prdtl().into();
+        let table = &mut self.command_list.tables[slot_index];
+        for i in 0..prdtl {
+            table.prdt[i].set_dba(buf.phys_addr() + 4 * 1024 * i);
+            table.prdt[i].set_dbc(8 * 1024 - 1);
+        }
+        table.prdt[prdtl - 1].set_dbc((u32::from(sector_cnt) << 9) - 1);
+    }
+
+    fn init_fis(&mut self, slot_index: usize) {
+        let fis = &mut self.command_list.tables[slot_index].fis;
+        fis.set_lba(0);
+        fis.set_c(true);
+        fis.set_command(0x25);
+        fis.set_device(1 << 6);
     }
 
     fn get_available_command_slot(&self) -> Option<usize> {
@@ -199,4 +249,9 @@ impl Port {
         let port_rg = registers.port_regs[self.index].as_mut().unwrap();
         f(port_rg);
     }
+}
+
+#[derive(Debug)]
+enum Error {
+    SlotIsNotAvailable,
 }

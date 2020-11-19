@@ -132,4 +132,8 @@ impl PortxCommandIssue {
     pub fn get(&self) -> u32 {
         self.0
     }
+
+    pub fn issue(&mut self, i: usize) {
+        self.0 |= 1 << i;
+    }
 }

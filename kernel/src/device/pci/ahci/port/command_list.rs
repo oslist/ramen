@@ -1,15 +1,19 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 use {
-    super::Registers, crate::mem::allocator::page_box::PageBox, alloc::vec::Vec,
-    bitfield::bitfield, core::convert::TryInto, x86_64::PhysAddr,
+    super::{fis::RegFixH2D, Registers},
+    crate::mem::allocator::page_box::PageBox,
+    alloc::vec::Vec,
+    bitfield::bitfield,
+    core::convert::TryInto,
+    x86_64::PhysAddr,
 };
 
 const NUM_OF_PRDT: usize = 8;
 
 pub struct CommandList {
-    headers: PageBox<[Header]>,
-    tables: Vec<PageBox<Table>>,
+    pub headers: PageBox<[Header]>,
+    pub tables: Vec<PageBox<Table>>,
 }
 impl CommandList {
     pub fn new(registers: &Registers) -> Self {
@@ -36,8 +40,8 @@ impl CommandList {
     }
 
     fn set_ptrs_of_headers(&mut self) {
-        for header in self.headers.iter_mut() {
-            header.set_command_table_base_addr(self.tables[0].phys_addr());
+        for (i, header) in self.headers.iter_mut().enumerate() {
+            header.set_command_table_base_addr(self.tables[i].phys_addr());
         }
     }
 
@@ -58,7 +62,9 @@ bitfield! {
     #[derive(Copy,Clone)]
     pub struct CommandHeaderStructure([u32]);
     impl Debug;
-    u64, _, set_command_table_base_addr_as_u64: 64+31, 64;
+    u64, _, set_ctba: 64+31, 64;
+    pub u8, _, set_cfl: 4, 0;
+    pub u16, prdtl, set_prdtl: 31, 16;
 }
 impl CommandHeaderStructure<[u32; 8]> {
     fn null() -> Self {
@@ -67,18 +73,20 @@ impl CommandHeaderStructure<[u32; 8]> {
 
     fn set_command_table_base_addr(&mut self, addr: PhysAddr) {
         assert!(addr.is_aligned(128_u64));
-        self.set_command_table_base_addr_as_u64(addr.as_u64());
+        self.set_ctba(addr.as_u64());
     }
 }
 
 pub struct Table {
-    rsvd: [u8; 0x80],
-    prdt: [PhysicalRegionDescriptorTable; NUM_OF_PRDT],
+    pub fis: RegFixH2D,
+    rsvd: [u8; 0x80 - 20],
+    pub prdt: [PhysicalRegionDescriptorTable; NUM_OF_PRDT],
 }
 impl Table {
     fn null() -> Self {
         Self {
-            rsvd: [0; 0x80],
+            fis: RegFixH2D::null(),
+            rsvd: [0; 0x80 - 20],
             prdt: [PhysicalRegionDescriptorTable::null(); NUM_OF_PRDT],
         }
     }
@@ -90,8 +98,20 @@ bitfield! {
     #[derive(Copy, Clone)]
     pub struct PhysicalRegionDescriptorTableStructure([u32]);
     impl Debug;
+    u64, _, set_dba_as_u64: 63, 0;
+    u32, _, set_dbc_as_u32: 96+21, 96;
 }
 impl PhysicalRegionDescriptorTable {
+    pub fn set_dba(&mut self, addr: PhysAddr) {
+        assert!(addr.is_aligned(2_u64));
+        self.set_dba_as_u64(addr.as_u64());
+    }
+
+    pub fn set_dbc(&mut self, dbc: u32) {
+        assert_eq!(dbc & 1, 1);
+        self.set_dbc_as_u32(dbc);
+    }
+
     fn null() -> Self {
         Self([0; 8])
     }
