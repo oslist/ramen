@@ -238,4 +238,5 @@ bitfield! {
     #[repr(transparent)]
     pub struct TransferEvent(u128);
     impl Debug;
+    pub u64, trb_ptr: 63, 0;
 }
