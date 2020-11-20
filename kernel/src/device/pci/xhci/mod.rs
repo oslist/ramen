@@ -6,6 +6,7 @@ mod dcbaa;
 mod port;
 mod register;
 mod ring;
+mod transferor;
 mod xhc;
 
 use super::config::bar;
