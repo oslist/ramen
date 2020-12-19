@@ -10,20 +10,20 @@ use num_derive::FromPrimitive;
 use os_units::{Bytes, NumOfPages};
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 
-/// Safety: This function is unsafe because writing a value to I/O port may have side effects which
+/// # Safety: This function is unsafe because writing a value to I/O port may have side effects which
 /// violate memory safety.
 pub unsafe fn outb(port: u16, value: u8) {
     general_syscall(Syscalls::Outb, port.into(), value.into());
 }
 
-/// Safety: This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
+/// # Safety: This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 pub unsafe fn inl(port: u16) -> u32 {
     general_syscall(Syscalls::Inl, port.into(), 0)
         .try_into()
         .unwrap()
 }
 
-/// Safety: This function is unsafe because writing a value via I/O port may have side effects
+/// # Safety: This function is unsafe because writing a value via I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn outl(port: u16, value: u32) {
     general_syscall(Syscalls::Outl, port.into(), value.into());
@@ -97,7 +97,7 @@ pub fn debug() {
     unsafe { general_syscall(Syscalls::Debug, 0, 0) };
 }
 
-/// Safety: This function is unsafe if arguments are invalid.
+/// # Safety: This function is unsafe if arguments are invalid.
 unsafe fn general_syscall(ty: Syscalls, a1: u64, a2: u64) -> u64 {
     let ty = ty as u64;
     let r: u64;
