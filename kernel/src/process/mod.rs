@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+mod manager;
+
 use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
 use x86_64::structures::paging::{PageTable, PageTableFlags};
 
