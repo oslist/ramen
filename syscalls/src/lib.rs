@@ -92,6 +92,11 @@ pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
     }
 }
 
+pub fn debug() {
+    // Safety: This operation is safe as this does not touch any unsafe things.
+    unsafe { general_syscall(Syscalls::Debug, 0, 0) };
+}
+
 /// Safety: This function is unsafe if arguments are invalid.
 unsafe fn general_syscall(ty: Syscalls, a1: u64, a2: u64) -> u64 {
     let ty = ty as u64;
@@ -116,4 +121,5 @@ pub enum Syscalls {
     DeallocatePages,
     MapPages,
     UnmapPages,
+    Debug,
 }
