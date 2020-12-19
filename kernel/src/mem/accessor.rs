@@ -4,8 +4,6 @@ use core::{marker::PhantomData, mem, ptr};
 use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
-
-
 pub struct Accessor<T: ?Sized> {
     virt: VirtAddr,
     bytes: Bytes, // The size of `T` is not always computable. Thus save the bytes of objects.

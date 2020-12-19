@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-
-
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
     syscalls::disable_interrupt();

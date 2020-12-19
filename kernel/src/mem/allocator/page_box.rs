@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-
-
 use super::super::paging::pml4::PML4;
 use core::{
     convert::TryFrom,

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-
 use acpi::{AcpiHandler, PhysicalMapping};
 use core::{convert::TryInto, ptr::NonNull};
 use os_units::Bytes;

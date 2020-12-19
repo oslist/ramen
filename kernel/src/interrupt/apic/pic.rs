@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-
-
 const MASTER_CMD: u16 = 0x20;
 const MASTER_DATA: u16 = 0x21;
 
