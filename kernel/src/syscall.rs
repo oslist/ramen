@@ -23,7 +23,7 @@ pub fn init() {
 }
 
 fn enable() {
-    // Safety: This operation is safe as this does not touch any unsafe things.
+    // SAFETY: This operation is safe as this does not touch any unsafe things.
     unsafe { Efer::update(|e| *e |= EferFlags::SYSTEM_CALL_EXTENSIONS) }
 }
 
@@ -59,7 +59,7 @@ extern "C" fn save_rip_and_rflags() -> u64 {
     }
 }
 
-/// Safety: This function is unsafe because invalid values in registers may break memory safety.
+/// SAFETY: This function is unsafe because invalid values in registers may break memory safety.
 #[no_mangle]
 unsafe fn prepare_arguments() {
     let syscall_index: u64;
@@ -70,7 +70,7 @@ unsafe fn prepare_arguments() {
     asm!("", in("rax") select_proper_syscall(syscall_index, a1, a2))
 }
 
-/// Safety: This function is unsafe because invalid arguments may break memory safety.
+/// SAFETY: This function is unsafe because invalid arguments may break memory safety.
 #[allow(clippy::too_many_lines)]
 unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
     match FromPrimitive::from_u64(idx) {
@@ -101,14 +101,14 @@ unsafe fn select_proper_syscall(idx: u64, a1: u64, a2: u64) -> u64 {
     }
 }
 
-/// Safety: This function is unsafe because reading from I/O port may have side effects which
+/// SAFETY: This function is unsafe because reading from I/O port may have side effects which
 /// violate memory safety.
 unsafe fn sys_inb(port: u16) -> u8 {
     let mut p = PortReadOnly::new(port);
     p.read()
 }
 
-/// Safety: This function is unsafe because writing to I/O port may have side effects which violate
+/// SAFETY: This function is unsafe because writing to I/O port may have side effects which violate
 /// memory safety.
 unsafe fn sys_outb(port: u16, v: u8) -> u64 {
     let mut p = PortWriteOnly::new(port);
@@ -116,14 +116,14 @@ unsafe fn sys_outb(port: u16, v: u8) -> u64 {
     0
 }
 
-/// Safety: This function is unsafe because reading from I/O port may have side effects which
+/// SAFETY: This function is unsafe because reading from I/O port may have side effects which
 /// violate memory safety.
 unsafe fn sys_inl(port: u16) -> u32 {
     let mut p = PortReadOnly::new(port);
     p.read()
 }
 
-/// Safety: This function is unsafe because writing to I/O port may have side effects which violate
+/// SAFETY: This function is unsafe because writing to I/O port may have side effects which violate
 /// memory safety.
 unsafe fn sys_outl(port: u16, v: u32) -> u64 {
     let mut p = PortWriteOnly::new(port);

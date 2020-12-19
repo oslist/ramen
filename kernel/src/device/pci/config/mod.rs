@@ -101,7 +101,7 @@ impl ConfigAddress {
         VALID | bus << 16 | device << 11 | function << 8 | register << 2
     }
 
-    /// Safety: `self` must contain the valid config address.
+    /// SAFETY: `self` must contain the valid config address.
     unsafe fn read(&self) -> u32 {
         syscalls::outl(Self::PORT_CONFIG_ADDR, self.as_u32());
         syscalls::inl(Self::PORT_CONFIG_DATA)
