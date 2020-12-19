@@ -5,7 +5,7 @@ mod manager;
 use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
 use x86_64::structures::paging::{PageTable, PageTableFlags};
 
-struct Process {
+pub struct Process {
     pml4: PageBox<PageTable>,
 }
 impl Process {
