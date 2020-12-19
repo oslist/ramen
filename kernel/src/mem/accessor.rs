@@ -4,7 +4,7 @@ use core::{marker::PhantomData, mem, ptr};
 use os_units::Bytes;
 use x86_64::{PhysAddr, VirtAddr};
 
-use crate::syscall;
+
 
 pub struct Accessor<T: ?Sized> {
     virt: VirtAddr,
@@ -17,7 +17,7 @@ impl<T> Accessor<T> {
     pub unsafe fn new(phys_base: PhysAddr, offset: Bytes) -> Self {
         let phys_base = phys_base + offset.as_usize();
         let bytes = Bytes::new(mem::size_of::<T>());
-        let virt = syscall::map_pages(phys_base, bytes);
+        let virt = syscalls::map_pages(phys_base, bytes);
 
         Self {
             virt,
@@ -50,7 +50,7 @@ impl<T> Accessor<[T]> {
     pub fn new_slice(phys_base: PhysAddr, offset: Bytes, len: usize) -> Self {
         let phys_base = phys_base + offset.as_usize();
         let bytes = Bytes::new(mem::size_of::<T>() * len);
-        let virt = syscall::map_pages(phys_base, bytes);
+        let virt = syscalls::map_pages(phys_base, bytes);
 
         Self {
             virt,
@@ -89,6 +89,6 @@ impl<T> Accessor<[T]> {
 
 impl<T: ?Sized> Drop for Accessor<T> {
     fn drop(&mut self) {
-        syscall::unmap_pages(self.virt, self.bytes);
+        syscalls::unmap_pages(self.virt, self.bytes);
     }
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use crate::syscall;
+
 
 const MASTER_CMD: u16 = 0x20;
 const MASTER_DATA: u16 = 0x21;
@@ -30,35 +30,35 @@ pub fn disable() {
 
 fn pic_init_mode() {
     unsafe {
-        syscall::outb(MASTER_ICW1, 0x11);
-        syscall::outb(SLAVE_ICW1, 0x11);
+        syscalls::outb(MASTER_ICW1, 0x11);
+        syscalls::outb(SLAVE_ICW1, 0x11);
     }
 }
 
 fn remap_pic() {
     unsafe {
-        syscall::outb(MASTER_ICW2, 0x20);
-        syscall::outb(SLAVE_ICW2, 0x28);
+        syscalls::outb(MASTER_ICW2, 0x20);
+        syscalls::outb(SLAVE_ICW2, 0x28);
     }
 }
 
 fn set_slave_offset() {
     unsafe {
-        syscall::outb(MASTER_ICW3, 4);
-        syscall::outb(SLAVE_ICW3, 2);
+        syscalls::outb(MASTER_ICW3, 4);
+        syscalls::outb(SLAVE_ICW3, 2);
     }
 }
 
 fn nonbuffer_mode() {
     unsafe {
-        syscall::outb(MASTER_ICW4, 1);
-        syscall::outb(SLAVE_ICW4, 1);
+        syscalls::outb(MASTER_ICW4, 1);
+        syscalls::outb(SLAVE_ICW4, 1);
     }
 }
 
 fn mask_pic() {
     unsafe {
-        syscall::outb(MASTER_DATA, 0xFF);
-        syscall::outb(SLAVE_DATA, 0xFF);
+        syscalls::outb(MASTER_DATA, 0xFF);
+        syscalls::outb(SLAVE_DATA, 0xFF);
     }
 }

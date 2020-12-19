@@ -3,7 +3,6 @@
 use super::pic;
 use crate::{
     mem::{accessor::Accessor, allocator},
-    syscall,
 };
 use acpi::{platform::IoApic, AcpiTables, InterruptModel};
 use bit_field::BitField;
@@ -149,7 +148,7 @@ pub fn init(table: &AcpiTables<allocator::acpi::Mapper>) {
         init_ps2_keyboard(&mut registers, id);
         init_ps2_mouse(&mut registers, id);
     }
-    syscall::enable_interrupt();
+    syscalls::enable_interrupt();
 }
 
 fn init_ps2_keyboard(r: &mut Registers, apic_id: u8) {

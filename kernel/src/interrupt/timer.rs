@@ -7,7 +7,6 @@ use x86_64::PhysAddr;
 
 use crate::{
     mem::{accessor::Accessor, allocator},
-    syscall,
 };
 
 const LVT_TIMER: PhysAddr = PhysAddr::new_truncate(0xfee0_0320);
@@ -138,7 +137,7 @@ impl IoReader {
 
     fn read(&mut self) -> u32 {
         // Safety: This operation is safe as the `port` has an I/O address taken from `AcpiTables`.
-        unsafe { syscall::inl(self.port) }
+        unsafe { syscalls::inl(self.port) }
     }
 }
 
