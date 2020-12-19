@@ -17,6 +17,7 @@ pub unsafe fn outb(port: u16, value: u8) {
 }
 
 /// # Safety: This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
+#[must_use]
 pub unsafe fn inl(port: u16) -> u32 {
     general_syscall(Syscalls::Inl, port.into(), 0)
         .try_into()
@@ -49,6 +50,7 @@ pub fn enable_interrupt_and_halt() {
     unsafe { general_syscall(Syscalls::EnableInterruptAndHalt, 0, 0) };
 }
 
+#[must_use]
 pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
     // Safety: This operation is safe as the arguments are propertly passed.
     VirtAddr::new(unsafe {
@@ -71,6 +73,7 @@ pub fn deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) {
     };
 }
 
+#[must_use]
 pub fn map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
     // Safety: This operation is safe as the all arguments are propertly passed.
     VirtAddr::new(unsafe {
