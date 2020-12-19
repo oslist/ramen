@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use core::{ptr, str};
-use x86_64::VirtAddr;
+use alloc::str;
 
 #[repr(C, packed)]
 #[derive(Debug)]
-struct Meta {
+pub struct Meta {
     name: [u8; 100],
     mode: [u8; 8],
     owner: [u8; 8],
@@ -25,7 +24,7 @@ struct Meta {
     _rsvd: [u8; 12],
 }
 impl Meta {
-    fn filesize_as_dec(&self) -> usize {
+    pub fn filesize_as_dec(&self) -> usize {
         let mut sz: usize = 0;
 
         // The last byte of `size` field is always 0 (u8), not 0 (char).
@@ -35,31 +34,9 @@ impl Meta {
         }
         sz
     }
-}
 
-pub fn list_files(addr: VirtAddr) {
-    let mut p = addr;
-    while unsafe {
-        ptr::read_unaligned((p + 257_u64).as_ptr() as *const [u8; 5]) == *"ustar".as_bytes()
-    } {
-        let meta: Meta = unsafe { ptr::read_unaligned(p.as_ptr()) };
-        info!("{}", str::from_utf8(&meta.name).unwrap());
-        p += (((meta.filesize_as_dec() + 511) / 512) + 1) * 512;
-    }
-}
-
-pub fn find_file(addr: VirtAddr, key: &str) {
-    let mut p = addr;
-    while unsafe {
-        ptr::read_unaligned((p + 257_u64).as_ptr() as *const [u8; 5]) == *"ustar".as_bytes()
-    } {
-        let meta: Meta = unsafe { ptr::read_unaligned(p.as_ptr()) };
-        let name = meta.name;
-        let name = name.split_at(key.len()).0;
-        info!("{:?} {:?}", name, key.as_bytes());
-        if name == key.as_bytes() {
-            info!("{:?}", meta);
-        }
-        p += (((meta.filesize_as_dec() + 511) / 512) + 1) * 512;
+    pub fn name(&self) -> &str {
+        let name = &self.name;
+        str::from_utf8(name).unwrap().trim_matches(char::from(0))
     }
 }
