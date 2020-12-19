@@ -7,13 +7,13 @@ use x86_64::VirtAddr;
 
 use super::ustar::Meta;
 
-pub fn list_files(addr: VirtAddr) {
+pub fn list_files() {
     for m in iter() {
         info!("{}", m.name());
     }
 }
 
-pub fn find_file(addr: VirtAddr, key: &str) {
+pub fn find_file(key: &str) {
     for m in iter() {
         if m.name() == key {
             info!("{:?}", m);

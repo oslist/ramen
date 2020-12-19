@@ -39,7 +39,7 @@ mod panic;
 mod syscall;
 mod tss;
 
-use common::{constant::INITRD_ADDR, kernelboot};
+use common::kernelboot;
 use device::{
     keyboard, mouse,
     pci::{ahci, xhci},
@@ -102,9 +102,9 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
 
     timer::init(&acpi);
 
-    fs::initrd::list_files(INITRD_ADDR);
+    fs::initrd::list_files();
 
-    fs::initrd::find_file(INITRD_ADDR, "tsukemen");
+    fs::initrd::find_file("tsukemen");
 }
 
 #[cfg(not(feature = "qemu_test"))]
