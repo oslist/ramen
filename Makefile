@@ -126,7 +126,7 @@ $(EFI_FILE):$(EFI_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(EFI_DIR)/
 	cd $(EFI_DIR) && $(RUSTCC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
 
 $(INITRD):$(TSUKEMEN_FILE) |$(BUILD_DIR)
-	tar cf $@ $(BUILD_DIR)
+	cd $(BUILD_DIR) && tar cf initrd.img *
 
 $(BUILD_DIR):
 	mkdir $@ -p
