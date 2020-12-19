@@ -103,6 +103,8 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     timer::init(&acpi);
 
     fs::ustar::list_files(INITRD_ADDR);
+
+    fs::ustar::find_file(INITRD_ADDR, "tsukemen");
 }
 
 #[cfg(not(feature = "qemu_test"))]

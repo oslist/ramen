@@ -4,6 +4,7 @@ use core::{ptr, str};
 use x86_64::VirtAddr;
 
 #[repr(C, packed)]
+#[derive(Debug)]
 struct Meta {
     name: [u8; 100],
     mode: [u8; 8],
@@ -43,6 +44,22 @@ pub fn list_files(addr: VirtAddr) {
     } {
         let meta: Meta = unsafe { ptr::read_unaligned(p.as_ptr()) };
         info!("{}", str::from_utf8(&meta.name).unwrap());
+        p += (((meta.filesize_as_dec() + 511) / 512) + 1) * 512;
+    }
+}
+
+pub fn find_file(addr: VirtAddr, key: &str) {
+    let mut p = addr;
+    while unsafe {
+        ptr::read_unaligned((p + 257_u64).as_ptr() as *const [u8; 5]) == *"ustar".as_bytes()
+    } {
+        let meta: Meta = unsafe { ptr::read_unaligned(p.as_ptr()) };
+        let name = meta.name;
+        let name = name.split_at(key.len()).0;
+        info!("{:?} {:?}", name, key.as_bytes());
+        if name == key.as_bytes() {
+            info!("{:?}", meta);
+        }
         p += (((meta.filesize_as_dec() + 511) / 512) + 1) * 512;
     }
 }
