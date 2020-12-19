@@ -7,9 +7,11 @@ EFI_SRC_DIR		:= $(EFI_DIR)/$(RUST_SRC_DIR)
 COMMON_SRC_DIR	:= common
 KERNEL_DIR		:= kernel
 KERNEL_SRC_DIR	:= $(KERNEL_DIR)/$(RUST_SRC_DIR)
+TSUKEMEN_DIR	:= tsukemen
 
 CARGO_JSON		:= x86_64-unknown-ramen.json
 RUST_SRC		:= $(shell find $(KERNEL_DIR) -name '*.rs')
+TSUKEMEN_SRC	:= $(shell find $(TSUKEMEN_DIR) -name '*.rs')
 EFI_SRC			:= $(shell find $(EFI_DIR) -name '*.rs')
 CARGO_TOML		:= Cargo.toml
 CONFIG_TOML		:= $(KERNEL_DIR)/.cargo/config.toml
@@ -20,6 +22,8 @@ LD_SRC			:= $(KERNEL_DIR)/os.ld
 
 EFI_FILE		:= $(BUILD_DIR)/bootx64.efi
 
+TSUKEMEN_FILE	:= $(BUILD_DIR)/tsukemen
+TSUKEMEN_LIB	:= $(BUILD_DIR)/libtsukemen.a
 KERNEL_FILE		:= $(BUILD_DIR)/kernel.bin
 LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
@@ -108,6 +112,12 @@ $(LIB_FILE): $(RUST_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(KERNEL_
 	# See: https://github.com/rust-lang/cargo/issues/2930
 	cd $(KERNEL_DIR) && $(RUSTCC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS) $(TEST_FLAG)
 
+$(TSUKEMEN_FILE):$(TSUKEMEN_LIB)|$(BUILD_DIR)
+	ld $^ -o $@
+
+$(TSUKEMEN_LIB): $(TSUKEMEN_SRC)|$(BUILD_DIR)
+	cd $(TSUKEMEN_DIR) && $(RUSTCC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
+
 %.fd:
 	@echo "$@ not found"
 	exit 1
@@ -115,7 +125,7 @@ $(LIB_FILE): $(RUST_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(KERNEL_
 $(EFI_FILE):$(EFI_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(EFI_DIR)/$(CARGO_TOML)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTCC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RELEASE_FLAGS)
 
-$(INITRD):|$(BUILD_DIR)
+$(INITRD):$(TSUKEMEN_FILE) |$(BUILD_DIR)
 	tar cf $@ $(BUILD_DIR)
 
 $(BUILD_DIR):
