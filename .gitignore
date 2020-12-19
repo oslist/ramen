@@ -1,4 +1,5 @@
 /target
+tsukemen/target
 bootx64/target
 kernel/target
 debug/target
