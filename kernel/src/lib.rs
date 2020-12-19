@@ -36,6 +36,7 @@ mod interrupt;
 mod mem;
 mod multitask;
 mod panic;
+mod process;
 mod syscall;
 mod tss;
 
