@@ -71,36 +71,43 @@ unsafe fn exec(p: *const Process) {
     (p.f)();
 }
 
-struct CallerSavedRegisters {
+#[repr(C)]
+struct InitialStack {
     rax: u64,
+    rbx: u64,
     rcx: u64,
     rdx: u64,
+    rbp: u64,
     rsi: u64,
     rdi: u64,
     r8: u64,
     r9: u64,
     r10: u64,
     r11: u64,
-}
-
-struct InitialStack {
-    regs: CallerSavedRegisters,
+    r12: u64,
+    r13: u64,
+    r14: u64,
+    r15: u64,
     rip: VirtAddr,
 }
 impl InitialStack {
     fn new(process: VirtAddr, rip: VirtAddr) -> Self {
         Self {
-            regs: CallerSavedRegisters {
-                rax: 0,
-                rcx: 0,
-                rdx: 0,
-                rsi: 0,
-                rdi: process.as_u64(),
-                r8: 0,
-                r9: 0,
-                r10: 0,
-                r11: 0,
-            },
+            rax: 0,
+            rbx: 0,
+            rcx: 0,
+            rdx: 0,
+            rsi: 0,
+            rbp: 0,
+            rdi: process.as_u64(),
+            r8: 0,
+            r9: 0,
+            r10: 0,
+            r11: 0,
+            r12: 0,
+            r13: 0,
+            r14: 0,
+            r15: 0,
             rip,
         }
     }
