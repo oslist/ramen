@@ -55,7 +55,7 @@ impl Process {
     fn push_initial_register_values(&mut self) {
         let s = self.initial_stack();
 
-        // Safety: This operation is safe as the pointer is valid and is aligned.
+        // SAFETY: This operation is safe as the pointer is valid and is aligned.
         unsafe { ptr::write(self.rsp.as_mut_ptr(), s) }
     }
 
