@@ -7,6 +7,8 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
+pub trait Message {}
+
 pub enum SystemTask {
     Inb(PortReadOnly<u8>),
     Outb(PortWriteOnly<u8>, u8),
@@ -21,3 +23,5 @@ pub enum SystemTask {
     MapPages(PhysAddr, Bytes),
     UnmapPages(VirtAddr, Bytes),
 }
+
+impl Message for SystemTask {}
