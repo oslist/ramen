@@ -61,6 +61,7 @@ impl Process {
     }
 }
 
+#[derive(Copy, Clone)]
 enum Ty {
     Kernel,
     User,
