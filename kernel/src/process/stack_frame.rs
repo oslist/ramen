@@ -29,7 +29,7 @@ impl StackFrame {
             interrupt: InterruptStackFrameValue {
                 instruction_pointer,
                 code_segment: GDT.user_code.0.into(),
-                cpu_flags: rflags::read().bits(),
+                cpu_flags: rflags::read_raw(),
                 stack_pointer,
                 stack_segment: GDT.user_data.0.into(),
             },
