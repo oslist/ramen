@@ -112,6 +112,7 @@ fn initialize_in_user_mode(boot_info: &mut kernelboot::Info) {
     process::init();
 
     process::add(Process::new_user(run_tasks));
+    process::add(Process::new_kernel(system_task::system_task_main));
 }
 
 fn wait_until_timer_interrupt_happens() -> ! {
