@@ -5,8 +5,10 @@ mod message;
 mod stack_frame;
 
 use crate::{mem::allocator::page_box::PageBox, tss::TSS};
+use alloc::{boxed::Box, vec::Vec};
 use common::constant::INTERRUPT_STACK;
 use core::convert::TryInto;
+use message::Message;
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageSize, Size4KiB},
@@ -27,6 +29,7 @@ pub fn switch() -> VirtAddr {
 
 pub struct Process {
     _stack: PageBox<[u8]>,
+    messages: Vec<Message>,
     stack_frame: PageBox<StackFrame>,
 }
 impl Process {
@@ -49,6 +52,7 @@ impl Process {
 
         Self {
             _stack: stack,
+            messages: Vec::new(),
             stack_frame,
         }
     }
