@@ -10,7 +10,7 @@ pub struct StackFrame {
     interrupt: InterruptStackFrameValue,
 }
 impl StackFrame {
-    pub fn new(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
+    pub fn new_user(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
         Self {
             regs: GeneralRegisters::default(),
             interrupt: InterruptStackFrameValue {
