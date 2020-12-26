@@ -21,6 +21,13 @@ impl StackFrame {
     pub fn new_user(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
         Creator::new(instruction_pointer, stack_pointer).create_user()
     }
+
+    fn from_interrupt_stack_frame(interrupt: InterruptStackFrameValue) -> StackFrame {
+        StackFrame {
+            regs: GeneralRegisters::default(),
+            interrupt,
+        }
+    }
 }
 
 struct Creator {
@@ -34,19 +41,12 @@ impl Creator {
 
     fn create_kernel(self) -> StackFrame {
         let ist = self.kernel_ist();
-        self.from_interrupt_stack_frame(ist)
+        StackFrame::from_interrupt_stack_frame(ist)
     }
 
     fn create_user(self) -> StackFrame {
         let ist = self.user_ist();
-        self.from_interrupt_stack_frame(ist)
-    }
-
-    fn from_interrupt_stack_frame(self, interrupt: InterruptStackFrameValue) -> StackFrame {
-        StackFrame {
-            regs: GeneralRegisters::default(),
-            interrupt,
-        }
+        StackFrame::from_interrupt_stack_frame(ist)
     }
 
     fn kernel_ist(&self) -> InterruptStackFrameValue {
