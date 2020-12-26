@@ -30,22 +30,25 @@ pub struct Process {
 }
 impl Process {
     pub fn new_kernel(f: fn() -> !) -> Self {
-        let stack = PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap());
-        let stack_bottom_addr = stack.virt_addr() + stack.bytes().as_usize();
-        let rip = VirtAddr::new((f as usize).try_into().unwrap());
-        Self {
-            _stack: stack,
-            stack_frame: PageBox::new(StackFrame::new_kernel(rip, stack_bottom_addr)),
-        }
+        Self::new(f, Ty::Kernel)
     }
 
     pub fn new_user(f: fn() -> !) -> Self {
+        Self::new(f, Ty::User)
+    }
+
+    fn new(f: fn() -> !, t: Ty) -> Self {
         let stack = PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap());
         let stack_bottom_addr = stack.virt_addr() + stack.bytes().as_usize();
         let rip = VirtAddr::new((f as usize).try_into().unwrap());
+        let stack_frame = PageBox::new(match t {
+            Ty::Kernel => StackFrame::new_kernel(rip, stack_bottom_addr),
+            Ty::User => StackFrame::new_user(rip, stack_bottom_addr),
+        });
+
         Self {
             _stack: stack,
-            stack_frame: PageBox::new(StackFrame::new_user(rip, stack_bottom_addr)),
+            stack_frame,
         }
     }
 
@@ -56,4 +59,9 @@ impl Process {
     fn stack_frame_bottom_addr(&self) -> VirtAddr {
         self.stack_frame_top_addr() + self.stack_frame.bytes().as_usize()
     }
+}
+
+enum Ty {
+    Kernel,
+    User,
 }
