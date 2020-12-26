@@ -29,6 +29,16 @@ pub struct Process {
     stack_frame: PageBox<StackFrame>,
 }
 impl Process {
+    pub fn new_kernel(f: fn() -> !) -> Self {
+        let stack = PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap());
+        let stack_bottom_addr = stack.virt_addr() + stack.bytes().as_usize();
+        let rip = VirtAddr::new((f as usize).try_into().unwrap());
+        Self {
+            _stack: stack,
+            stack_frame: PageBox::new(StackFrame::new_kernel(rip, stack_bottom_addr)),
+        }
+    }
+
     pub fn new_user(f: fn() -> !) -> Self {
         let stack = PageBox::new_slice(0, Size4KiB::SIZE.try_into().unwrap());
         let stack_bottom_addr = stack.virt_addr() + stack.bytes().as_usize();
