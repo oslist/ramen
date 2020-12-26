@@ -10,6 +10,19 @@ pub struct StackFrame {
     interrupt: InterruptStackFrameValue,
 }
 impl StackFrame {
+    pub fn new_kernel(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
+        Self {
+            regs: GeneralRegisters::default(),
+            interrupt: InterruptStackFrameValue {
+                instruction_pointer,
+                code_segment: GDT.kernel_code.0.into(),
+                cpu_flags: rflags::read_raw(),
+                stack_pointer,
+                stack_segment: GDT.kernel_data.0.into(),
+            },
+        }
+    }
+
     pub fn new_user(instruction_pointer: VirtAddr, stack_pointer: VirtAddr) -> Self {
         Self {
             regs: GeneralRegisters::default(),
