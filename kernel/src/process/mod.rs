@@ -35,7 +35,7 @@ impl Process {
         let rip = VirtAddr::new((f as usize).try_into().unwrap());
         Self {
             _stack: stack,
-            stack_frame: PageBox::new(StackFrame::new(rip, stack_bottom_addr)),
+            stack_frame: PageBox::user(StackFrame::new(rip, stack_bottom_addr)),
         }
     }
 
