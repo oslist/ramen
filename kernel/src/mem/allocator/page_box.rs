@@ -22,6 +22,13 @@ pub struct PageBox<T: ?Sized> {
     _marker: PhantomData<T>,
 }
 impl<T> PageBox<T> {
+    pub fn kernel(x: T) -> Self {
+        let bytes = Bytes::new(mem::size_of::<T>());
+        let mut page_box = Self::new_zeroed_from_bytes(bytes, Allocators::kernel());
+        page_box.write_initial_value(x);
+        page_box
+    }
+
     pub fn user(x: T) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>());
         let mut page_box = Self::new_zeroed_from_bytes(bytes, Allocators::user());
