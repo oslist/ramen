@@ -9,7 +9,7 @@ use core::{
     ops::{Deref, DerefMut},
     ptr, slice,
 };
-use os_units::Bytes;
+use os_units::{Bytes, NumOfPages};
 use x86_64::{
     structures::paging::{MapperAllSizes, Size4KiB},
     PhysAddr, VirtAddr,
@@ -18,12 +18,13 @@ use x86_64::{
 pub struct PageBox<T: ?Sized> {
     virt: VirtAddr,
     bytes: Bytes,
+    allocators: Allocators,
     _marker: PhantomData<T>,
 }
 impl<T> PageBox<T> {
     pub fn new(x: T) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>());
-        let mut page_box = Self::new_zeroed_from_bytes(bytes);
+        let mut page_box = Self::new_zeroed_from_bytes(bytes, Allocators::user());
         page_box.write_initial_value(x);
         page_box
     }
@@ -71,7 +72,7 @@ where
 {
     pub fn new_slice(x: T, num_of_elements: usize) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
-        let mut page_box = Self::new_zeroed_from_bytes(bytes);
+        let mut page_box = Self::new_zeroed_from_bytes(bytes, Allocators::user());
         page_box.write_all_elements_with_same_value(x);
         page_box
     }
@@ -142,12 +143,13 @@ impl<T: ?Sized> PageBox<T> {
         self.bytes
     }
 
-    fn new_zeroed_from_bytes(bytes: Bytes) -> Self {
-        let virt = syscalls::allocate_pages(bytes.as_num_of_pages());
+    fn new_zeroed_from_bytes(bytes: Bytes, allocators: Allocators) -> Self {
+        let virt = (allocators.allocate)(bytes.as_num_of_pages());
 
         let mut page_box = Self {
             virt,
             bytes,
+            allocators,
             _marker: PhantomData,
         };
         page_box.write_all_bytes_with_zero();
@@ -163,6 +165,26 @@ impl<T: ?Sized> PageBox<T> {
 impl<T: ?Sized> Drop for PageBox<T> {
     fn drop(&mut self) {
         let num_of_pages = self.bytes.as_num_of_pages::<Size4KiB>();
-        syscalls::deallocate_pages(self.virt, num_of_pages);
+        (self.allocators.deallocate)(self.virt, num_of_pages);
+    }
+}
+
+struct Allocators {
+    allocate: fn(NumOfPages<Size4KiB>) -> VirtAddr,
+    deallocate: fn(VirtAddr, NumOfPages<Size4KiB>),
+}
+impl Allocators {
+    fn kernel() -> Self {
+        Self {
+            allocate: super::allocate_pages,
+            deallocate: super::deallocate_pages,
+        }
+    }
+
+    fn user() -> Self {
+        Self {
+            allocate: syscalls::allocate_pages,
+            deallocate: syscalls::deallocate_pages,
+        }
     }
 }
