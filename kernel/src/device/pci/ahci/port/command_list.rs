@@ -15,7 +15,7 @@ pub struct CommandList {
 }
 impl CommandList {
     pub fn new(registers: &Registers) -> Self {
-        let headers = PageBox::new_slice(
+        let headers = PageBox::new_user_slice(
             Header::null(),
             Self::num_of_command_slots_supported(registers),
         );

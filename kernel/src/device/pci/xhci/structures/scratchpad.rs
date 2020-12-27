@@ -33,7 +33,7 @@ impl Scratchpad {
         let len: usize = Self::num_of_buffers().try_into().unwrap();
 
         Self {
-            arr: PageBox::new_slice(PhysAddr::zero(), len),
+            arr: PageBox::new_user_slice(PhysAddr::zero(), len),
             bufs: Vec::new(),
         }
     }
@@ -53,7 +53,7 @@ impl Scratchpad {
 
     fn allocate_buffers(&mut self) {
         for _ in 0..Self::num_of_buffers() {
-            let b = PageBox::new_slice(0, Self::page_size().as_usize());
+            let b = PageBox::new_user_slice(0, Self::page_size().as_usize());
             self.bufs.push(b);
         }
     }

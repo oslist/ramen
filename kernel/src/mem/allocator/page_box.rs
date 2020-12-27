@@ -70,7 +70,7 @@ impl<T> PageBox<[T]>
 where
     T: Copy + Clone,
 {
-    pub fn new_slice(x: T, num_of_elements: usize) -> Self {
+    pub fn new_user_slice(x: T, num_of_elements: usize) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
         let mut page_box = Self::new_zeroed_from_bytes(bytes, Allocators::user());
         page_box.write_all_elements_with_same_value(x);
