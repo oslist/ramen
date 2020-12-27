@@ -49,6 +49,7 @@ bitfield! {
 
     pub _ ,set_run_stop: 0;
     pub hc_reset,set_hc_reset: 1;
+    pub hc_error, _: 12;
     interrupt_enable,set_interrupt_enable: 2;
 }
 
