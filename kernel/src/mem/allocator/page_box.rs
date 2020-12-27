@@ -79,15 +79,16 @@ where
     T: Copy + Clone,
 {
     pub fn kernel_slice(x: T, num_of_elements: usize) -> Self {
-        let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
-        let mut page_box = Self::new_zeroed_from_bytes(bytes, Allocators::kernel());
-        page_box.write_all_elements_with_same_value(x);
-        page_box
+        Self::new_slice(x, num_of_elements, Allocators::kernel())
     }
 
     pub fn user_slice(x: T, num_of_elements: usize) -> Self {
+        Self::new_slice(x, num_of_elements, Allocators::user())
+    }
+
+    fn new_slice(x: T, num_of_elements: usize, allocators: Allocators) -> Self {
         let bytes = Bytes::new(mem::size_of::<T>() * num_of_elements);
-        let mut page_box = Self::new_zeroed_from_bytes(bytes, Allocators::user());
+        let mut page_box = Self::new_zeroed_from_bytes(bytes, allocators);
         page_box.write_all_elements_with_same_value(x);
         page_box
     }
