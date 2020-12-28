@@ -17,9 +17,16 @@ pub mod phys;
 pub mod virt;
 
 pub fn allocate_pages(num_of_pages: NumOfPages<Size4KiB>) -> Option<VirtAddr> {
+    allocate_pages_with_align(num_of_pages, NumOfPages::new(1))
+}
+
+pub fn allocate_pages_with_align(
+    num_of_pages: NumOfPages<Size4KiB>,
+    align: NumOfPages<Size4KiB>,
+) -> Option<VirtAddr> {
     let phys_addr = allocate_phys(num_of_pages)?;
 
-    let virt_addr = super::map_pages(phys_addr, num_of_pages.as_bytes());
+    let virt_addr = super::map_pages_with_align(phys_addr, num_of_pages.as_bytes(), align);
 
     Some(virt_addr)
 }
