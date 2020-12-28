@@ -14,10 +14,10 @@ pub mod allocator;
 pub mod paging;
 
 pub fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
-    map_with_aligned(start, object_size, NumOfPages::new(1))
+    map_pages_with_align(start, object_size, NumOfPages::new(1))
 }
 
-pub fn map_with_aligned(
+pub fn map_pages_with_align(
     start: PhysAddr,
     object_size: Bytes,
     align: NumOfPages<Size4KiB>,
