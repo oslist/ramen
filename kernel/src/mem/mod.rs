@@ -2,7 +2,7 @@
 
 use allocator::{phys::FRAME_MANAGER, virt};
 use core::convert::TryFrom;
-use os_units::Bytes;
+use os_units::{Bytes, NumOfPages};
 use paging::pml4::PML4;
 use x86_64::{
     structures::paging::{Mapper, Page, PageSize, PageTableFlags, PhysFrame, Size4KiB},
@@ -14,6 +14,14 @@ pub mod allocator;
 pub mod paging;
 
 pub fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
+    map_with_aligned(start, object_size, NumOfPages::new(1))
+}
+
+pub fn map_with_aligned(
+    start: PhysAddr,
+    object_size: Bytes,
+    align: NumOfPages<Size4KiB>,
+) -> VirtAddr {
     let start_frame_addr = start.align_down(Size4KiB::SIZE);
     let end_frame_addr = (start + object_size.as_usize()).align_down(Size4KiB::SIZE);
 
@@ -23,7 +31,7 @@ pub fn map_pages(start: PhysAddr, object_size: Bytes) -> VirtAddr {
     let virt = virt::search_free_addr(num_pages)
         .expect("OOM during creating a new accessor to a register.");
 
-    for i in 0..num_pages.as_usize() {
+    for i in (0..num_pages.as_usize()).step_by(align.as_usize()) {
         let page = Page::<Size4KiB>::containing_address(virt + Size4KiB::SIZE * i as u64);
         let frame = PhysFrame::containing_address(start_frame_addr + Size4KiB::SIZE * i as u64);
         let flag =
