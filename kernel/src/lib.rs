@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #![no_std]
+#![feature(unsafe_block_in_unsafe_fn)]
 #![feature(int_bits_const)]
 #![feature(async_closure)]
 #![feature(alloc_error_handler)]
@@ -14,6 +15,7 @@
 #![feature(abi_x86_interrupt)]
 #![deny(clippy::pedantic)]
 #![deny(clippy::all)]
+#![deny(unsafe_op_in_unsafe_fn)]
 
 #[macro_use]
 #[allow(unused_imports)]
