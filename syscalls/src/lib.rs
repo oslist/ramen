@@ -15,7 +15,9 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 /// This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 #[must_use]
 pub unsafe fn inl(port: u16) -> u32 {
-    general_syscall(Ty::Inl, port.into(), 0).try_into().unwrap()
+    // SAFETY: Caller ensures that reading from `port` has no side effects which violate memory
+    // safety.
+    unsafe { general_syscall(Ty::Inl, port.into(), 0).try_into().unwrap() }
 }
 
 /// # Safety
@@ -23,7 +25,9 @@ pub unsafe fn inl(port: u16) -> u32 {
 /// This function is unsafe because writing a value via I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn outl(port: u16, value: u32) {
-    general_syscall(Ty::Outl, port.into(), value.into());
+    // SAFETY: Caller ensures that writing to `port` has no side effects which violate memory
+    // safety.
+    unsafe { general_syscall(Ty::Outl, port.into(), value.into()) };
 }
 
 pub fn halt() {
@@ -91,9 +95,13 @@ pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
 unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64) -> u64 {
     let ty = ty as u64;
     let r: u64;
-    asm!("syscall",
+
+    // SAFETY: Caller ensures that `a1` and `a2` are valid for calling syscall.
+    unsafe {
+        asm!("syscall",
         inout("rax") ty => r, inout("rdi") a1 => _, inout("rsi") a2 => _, out("rdx") _,
-        out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
+        out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,)
+    }
     r
 }
 
