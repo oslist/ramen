@@ -7,6 +7,7 @@ use super::capability::Capability;
 use crate::mem::accessor::Accessor;
 use core::convert::TryInto;
 use os_units::Bytes;
+use supported_protocol::SupportedProtocol;
 use usb_legacy_support::UsbLegacySupport;
 use x86_64::PhysAddr;
 
@@ -65,9 +66,18 @@ impl Iterator for Iter {
         let a = self.addr?;
         let next_addr = self.next_addr();
 
-        let item = if let Some(1) = self.id() {
-            let a = unsafe { Accessor::user(a, Bytes::zero()) };
-            ExtendedCapability::UsbLegacySupport(a)
+        let item = if let Some(x) = self.id() {
+            // SAFETY: `a` is the valid address to the head of a capability.
+            unsafe {
+                match x {
+                    1 => {
+                        let a = Accessor::user(a, Bytes::zero());
+                        ExtendedCapability::UsbLegacySupport(a)
+                    }
+                    2 => ExtendedCapability::SupportedProtocol(SupportedProtocol::new(a)),
+                    _ => ExtendedCapability::UnImplemented,
+                }
+            }
         } else {
             ExtendedCapability::UnImplemented
         };
@@ -80,5 +90,6 @@ impl Iterator for Iter {
 
 pub enum ExtendedCapability {
     UsbLegacySupport(Accessor<UsbLegacySupport>),
+    SupportedProtocol(SupportedProtocol),
     UnImplemented,
 }
