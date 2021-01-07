@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+mod supported_protocol;
 pub mod usb_legacy_support;
 
 use core::convert::TryInto;
