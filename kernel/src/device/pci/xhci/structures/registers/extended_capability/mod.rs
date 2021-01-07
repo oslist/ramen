@@ -3,10 +3,9 @@
 mod supported_protocol;
 pub mod usb_legacy_support;
 
-use core::convert::TryInto;
-
 use super::capability::Capability;
 use crate::mem::accessor::Accessor;
+use core::convert::TryInto;
 use os_units::Bytes;
 use usb_legacy_support::UsbLegacySupport;
 use x86_64::PhysAddr;
