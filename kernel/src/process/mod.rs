@@ -8,12 +8,15 @@ mod stack_frame;
 mod switch;
 
 use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
+use alloc::collections::VecDeque;
 use core::sync::atomic::{AtomicI32, Ordering};
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageTable, PageTableFlags},
     PhysAddr, VirtAddr,
 };
+
+use self::message::Message;
 
 #[derive(Debug)]
 pub struct Process {
@@ -24,6 +27,9 @@ pub struct Process {
     pml4_addr: PhysAddr,
     stack_frame: Option<PageBox<StackFrame>>,
     privilege: Privilege,
+
+    inbox: VecDeque<Message>,
+    outbox: VecDeque<Message>,
 }
 impl Process {
     pub fn kernel(f: fn()) -> Self {
@@ -45,6 +51,9 @@ impl Process {
             pml4_addr,
             stack_frame: None,
             privilege,
+
+            inbox: VecDeque::new(),
+            outbox: VecDeque::new(),
         }
     }
 

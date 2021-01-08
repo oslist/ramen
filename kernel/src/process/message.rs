@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-struct Message {
+#[derive(Debug)]
+pub(super) struct Message {
     header: Header,
     body: Body,
 }
@@ -10,6 +11,7 @@ impl Message {
     }
 }
 
+#[derive(Debug)]
 struct Header {
     sender: super::Id,
 }
@@ -19,6 +21,7 @@ impl Header {
     }
 }
 
+#[derive(Debug)]
 struct Body {
     m1: u64,
     m2: u64,
