@@ -3,6 +3,7 @@
 mod collections;
 mod exit;
 pub mod manager;
+mod message;
 mod stack_frame;
 mod switch;
 
