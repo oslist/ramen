@@ -1,5 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+use super::collections;
+
+fn send(to: super::Id, m: Message) {
+    collections::process::handle_mut(to, |p| p.inbox.push_back(m))
+}
+
+fn receive() -> Option<Message> {
+    collections::process::handle_running_mut(|p| p.outbox.pop_front())
+}
+
 #[derive(Debug)]
 pub(super) struct Message {
     header: Header,
