@@ -17,7 +17,7 @@ pub(in crate::process) fn add(p: Process) {
 
 pub(in crate::process) fn handle_running<T, U>(f: T) -> U
 where
-    T: Fn(&Process) -> U,
+    T: FnOnce(&Process) -> U,
 {
     let id = woken_pid::active_pid();
     handle(id, f)
@@ -25,7 +25,7 @@ where
 
 pub(in crate::process) fn handle_running_mut<T, U>(f: T) -> U
 where
-    T: Fn(&mut Process) -> U,
+    T: FnOnce(&mut Process) -> U,
 {
     let id = woken_pid::active_pid();
     handle_mut(id, f)
@@ -33,7 +33,7 @@ where
 
 pub(in crate::process) fn handle<T, U>(id: process::Id, f: T) -> U
 where
-    T: Fn(&Process) -> U,
+    T: FnOnce(&Process) -> U,
 {
     let l = lock_processes();
     let p = l
@@ -44,7 +44,7 @@ where
 
 pub(in crate::process) fn handle_mut<T, U>(id: process::Id, f: T) -> U
 where
-    T: Fn(&mut Process) -> U,
+    T: FnOnce(&mut Process) -> U,
 {
     let mut l = lock_processes();
     let p = l
