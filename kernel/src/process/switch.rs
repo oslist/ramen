@@ -94,8 +94,10 @@ impl<'a> StackCreator<'a> {
             Some(ref s) => {
                 let stack_bottom = s.virt_addr() + s.bytes().as_usize();
                 let stack_frame = PageBox::kernel(match self.process.privilege {
-                    Privilege::Kernel => StackFrame::kernel(self.process.f, stack_bottom),
-                    Privilege::User => StackFrame::user(self.process.f, stack_bottom),
+                    Privilege::Kernel => {
+                        StackFrame::kernel(self.process.entry_addr(), stack_bottom)
+                    }
+                    Privilege::User => StackFrame::user(self.process.entry_addr(), stack_bottom),
                 });
 
                 self.process.stack_frame = Some(stack_frame);

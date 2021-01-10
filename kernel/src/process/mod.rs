@@ -7,7 +7,10 @@ mod stack_frame;
 mod switch;
 
 use crate::mem::{allocator::page_box::PageBox, paging::pml4::PML4};
-use core::sync::atomic::{AtomicI32, Ordering};
+use core::{
+    convert::TryInto,
+    sync::atomic::{AtomicI32, Ordering},
+};
 use stack_frame::StackFrame;
 use x86_64::{
     structures::paging::{PageTable, PageTableFlags},
@@ -18,7 +21,7 @@ use x86_64::{
 pub struct Process {
     id: Id,
     stack: Option<PageBox<[u8]>>,
-    f: fn(),
+    entry: Entry,
     _pml4: PageBox<PageTable>,
     pml4_addr: PhysAddr,
     stack_frame: Option<PageBox<StackFrame>>,
@@ -39,7 +42,7 @@ impl Process {
         Process {
             id: Id::new(),
             stack: None,
-            f,
+            entry: Entry::Function(f),
             _pml4: pml4,
             pml4_addr,
             stack_frame: None,
@@ -49,6 +52,10 @@ impl Process {
 
     fn id(&self) -> Id {
         self.id
+    }
+
+    fn entry_addr(&self) -> VirtAddr {
+        self.entry.addr()
     }
 
     fn stack_frame_top_addr(&self) -> VirtAddr {
@@ -111,5 +118,19 @@ impl Pml4Creator {
 
     fn map_kernel_area(&mut self) {
         self.pml4[510] = PML4.lock().level_4_table()[510].clone();
+    }
+}
+
+#[derive(Debug)]
+pub enum Entry {
+    Function(fn()),
+    Executable(VirtAddr),
+}
+impl Entry {
+    fn addr(&self) -> VirtAddr {
+        match self {
+            Entry::Function(f) => VirtAddr::new((*f as usize).try_into().unwrap()),
+            Entry::Executable(e) => *e,
+        }
     }
 }
