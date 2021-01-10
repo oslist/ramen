@@ -14,7 +14,9 @@ use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
 /// This function is unsafe because reading a value from I/O port may have side effects which violate memory safety.
 #[must_use]
 pub unsafe fn inl(port: u16) -> u32 {
-    general_syscall(Ty::Inl, port.into(), 0).try_into().unwrap()
+    general_syscall(Ty::Inl, port.into(), 0, 0)
+        .try_into()
+        .unwrap()
 }
 
 /// # Safety
@@ -22,34 +24,39 @@ pub unsafe fn inl(port: u16) -> u32 {
 /// This function is unsafe because writing a value via I/O port may have side effects
 /// which violate memory safety.
 pub unsafe fn outl(port: u16, value: u32) {
-    general_syscall(Ty::Outl, port.into(), value.into());
+    general_syscall(Ty::Outl, port.into(), value.into(), 0);
 }
 
 pub fn halt() {
     // SAFETY: This operation is safe as it does not touch any unsafe things.
-    unsafe { general_syscall(Ty::Halt, 0, 0) };
+    unsafe { general_syscall(Ty::Halt, 0, 0, 0) };
 }
 
 pub fn disable_interrupt() {
     // SAFETY: This operation is safe as it does not touch any unsafe things.
-    unsafe { general_syscall(Ty::DisableInterrupt, 0, 0) };
+    unsafe { general_syscall(Ty::DisableInterrupt, 0, 0, 0) };
 }
 
 pub fn enable_interrupt() {
     // SAFETY: This operation is safe as it does not touch any unsafe things.
-    unsafe { general_syscall(Ty::EnableInterrupt, 0, 0) };
+    unsafe { general_syscall(Ty::EnableInterrupt, 0, 0, 0) };
 }
 
 pub fn enable_interrupt_and_halt() {
     // SAFETY: This operation is safe as it does not touch any unsafe things.
-    unsafe { general_syscall(Ty::EnableInterruptAndHalt, 0, 0) };
+    unsafe { general_syscall(Ty::EnableInterruptAndHalt, 0, 0, 0) };
 }
 
 #[must_use]
 pub fn allocate_pages(pages: NumOfPages<Size4KiB>) -> VirtAddr {
     // SAFETY: This operation is safe as the arguments are propertly passed.
     VirtAddr::new(unsafe {
-        general_syscall(Ty::AllocatePages, pages.as_usize().try_into().unwrap(), 0)
+        general_syscall(
+            Ty::AllocatePages,
+            pages.as_usize().try_into().unwrap(),
+            0,
+            0,
+        )
     })
 }
 
@@ -60,6 +67,7 @@ pub fn deallocate_pages(virt: VirtAddr, pages: NumOfPages<Size4KiB>) {
             Ty::DeallocatePages,
             virt.as_u64(),
             pages.as_usize().try_into().unwrap(),
+            0,
         )
     };
 }
@@ -72,6 +80,7 @@ pub fn map_pages(start: PhysAddr, bytes: Bytes) -> VirtAddr {
             Ty::MapPages,
             start.as_u64(),
             bytes.as_usize().try_into().unwrap(),
+            0,
         )
     })
 }
@@ -82,6 +91,7 @@ pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
             Ty::UnmapPages,
             start.as_u64(),
             bytes.as_usize().try_into().unwrap(),
+            0,
         );
     }
 }
@@ -89,7 +99,7 @@ pub fn unmap_pages(start: VirtAddr, bytes: Bytes) {
 #[must_use]
 pub fn getpid() -> i32 {
     // SAFETY: The system call type is correct, and the remaining arguments are not used.
-    unsafe { general_syscall(Ty::GetPid, 0, 0).try_into().unwrap() }
+    unsafe { general_syscall(Ty::GetPid, 0, 0, 0).try_into().unwrap() }
 }
 
 pub fn exit() -> ! {
@@ -98,11 +108,11 @@ pub fn exit() -> ! {
 }
 
 /// SAFETY: This function is unsafe if arguments are invalid.
-unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64) -> u64 {
+unsafe fn general_syscall(ty: Ty, a1: u64, a2: u64, a3: u64) -> u64 {
     let ty = ty as u64;
     let r: u64;
     asm!("syscall",
-        inout("rax") ty => r, inout("rdi") a1 => _, inout("rsi") a2 => _, out("rdx") _,
+        inout("rax") ty => r, inout("rdi") a1 => _, inout("rsi") a2 => _, inout("rdx") a3 => _,
         out("rcx") _, out("r8") _, out("r9") _, out("r10") _, out("r11") _,);
     r
 }
