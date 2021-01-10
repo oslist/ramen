@@ -7,6 +7,7 @@ EFI_SRC_DIR		:= $(EFI_DIR)/$(RUST_SRC_DIR)
 COMMON_SRC_DIR	:= common
 KERNEL_DIR		:= kernel
 KERNEL_SRC_DIR	:= $(KERNEL_DIR)/$(RUST_SRC_DIR)
+TSUKEMEN_DIR	:= tsukemen
 
 CARGO_JSON		:= x86_64-unknown-ramen.json
 RUST_SRC		:= $(shell find $(KERNEL_DIR) -name '*.rs')
@@ -25,6 +26,7 @@ LIB_FILE		:= $(BUILD_DIR)/libramen_os.a
 IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
 FAT_IMG			:= $(BUILD_DIR)/fat.img
 INITRD			:= $(BUILD_DIR)/initrd.img
+TSUKEMEN		:= $(BUILD_DIR)/tsukemen
 
 LD				:= ld
 RUSTC			:= cargo
@@ -44,7 +46,7 @@ LDFLAGS			:= -nostdlib -T $(LD_SRC)
 
 .SUFFIXES:
 
-all:$(KERNEL_FILE) $(EFI_FILE) $(INITRD)
+all:$(IMG_FILE)
 
 copy_to_usb:$(KERNEL_FILE) $(EFI_FILE) $(INITRD)
 ifeq ($(USB_DEVICE_PATH),)
@@ -69,7 +71,7 @@ test:
 		then echo "Booting test succeed! ($(TEST_MODE) mode)"; exit 0;\
 		else echo "Booting test failed ($(TEST_MODE) mode)"; exit 1;fi
 
-$(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE) $(INITRD)
+$(IMG_FILE):$(KERNEL_FILE) $(HEAD_FILE) $(EFI_FILE) $(TSUKEMEN) $(INITRD)
 	dd if=/dev/zero of=$@ bs=1k count=28800
 	mformat -i $@ -h 200 -t 500 -s 144::
 	# Cannot replace these mmd and mcopy with `make copy_to_usb` because `mount` needs `sudo`
@@ -87,7 +89,7 @@ $(FAT_IMG):$(IMG_FILE)
 $(KERNEL_FILE):$(LIB_FILE) $(LD_SRC)|$(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(LIB_FILE)
 
-$(LIB_FILE): $(RUST_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(KERNEL_DIR)/$(CARGO_TOML) $(KERNEL_DIR)/$(CARGO_JSON) $(CONFIG_TOML)|$(BUILD_DIR)
+$(LIB_FILE): $(RUST_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(KERNEL_DIR)/$(CARGO_TOML) $(CARGO_JSON) $(CONFIG_TOML)|$(BUILD_DIR)
 	# FIXME: Currently `cargo` tries to read `$(pwd)/.cargo/config.toml`, not
 	# `$(dirname argument_of_--manifest-path)/.cargo/config.toml`.
 	# See: https://github.com/rust-lang/cargo/issues/2930
@@ -102,6 +104,9 @@ $(EFI_FILE):$(EFI_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(EFI_DIR)/
 
 $(INITRD):|$(BUILD_DIR)
 	tar cf $@ $(BUILD_DIR)
+
+$(TSUKEMEN):|$(BUILD_DIR)
+	cd $(TSUKEMEN_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(BUILD_DIR):
 	mkdir $@ -p

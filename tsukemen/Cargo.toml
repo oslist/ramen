@@ -1,0 +1,12 @@
+[package]
+name = "tsukemen"
+version = "0.1.0"
+authors = ["toku-sa-n <tokusan441@gmail.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["staticlib"]
+test = false
+bench = false
+
+[dependencies]
