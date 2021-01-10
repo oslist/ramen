@@ -27,6 +27,7 @@ IMG_FILE		:= $(BUILD_DIR)/ramen_os.img
 FAT_IMG			:= $(BUILD_DIR)/fat.img
 INITRD			:= $(BUILD_DIR)/initrd.img
 TSUKEMEN		:= $(BUILD_DIR)/tsukemen
+TSUKEMEN_LIB	:= $(BUILD_DIR)/libtsukemen.a
 
 LD				:= ld
 RUSTC			:= cargo
@@ -60,7 +61,7 @@ else
 	sudo umount /mnt
 endif
 
-run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE) $(FAT_IMG) $(INITRD)
+run:$(IMG_FILE) $(OVMF_VARS) $(OVMF_CODE) $(FAT_IMG) $(TSUKEMEN) $(INITRD)
 	$(VIEWER) $(VIEWERFLAGS) -no-shutdown -monitor stdio
 
 test:
@@ -102,10 +103,13 @@ $(LIB_FILE): $(RUST_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(KERNEL_
 $(EFI_FILE):$(EFI_SRC) $(COMMON_SRC) $(COMMON_SRC_DIR)/$(CARGO_TOML) $(EFI_DIR)/$(CARGO_TOML)|$(BUILD_DIR)
 	cd $(EFI_DIR) && $(RUSTC) build --out-dir=../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
-$(INITRD):|$(BUILD_DIR)
+$(INITRD):$(TSUKEMEN)|$(BUILD_DIR)
 	tar cf $@ $(BUILD_DIR)
 
-$(TSUKEMEN):|$(BUILD_DIR)
+$(TSUKEMEN):$(TSUKEMEN_LIB)
+	ld $^ -o $@ -emain
+
+$(TSUKEMEN_LIB):|$(BUILD_DIR)
 	cd $(TSUKEMEN_DIR) && $(RUSTC) build --out-dir ../$(BUILD_DIR) -Z unstable-options $(RUSTCFLAGS)
 
 $(BUILD_DIR):
