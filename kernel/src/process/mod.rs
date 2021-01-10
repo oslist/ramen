@@ -29,20 +29,20 @@ pub struct Process {
 }
 impl Process {
     pub fn kernel(f: fn()) -> Self {
-        Self::new(f, Privilege::Kernel)
+        Self::new(Entry::Function(f), Privilege::Kernel)
     }
 
     pub fn user(f: fn()) -> Self {
-        Self::new(f, Privilege::User)
+        Self::new(Entry::Function(f), Privilege::User)
     }
 
-    fn new(f: fn(), privilege: Privilege) -> Self {
+    fn new(entry: Entry, privilege: Privilege) -> Self {
         let pml4 = Pml4Creator::new().create();
         let pml4_addr = pml4.phys_addr();
         Process {
             id: Id::new(),
             stack: None,
-            entry: Entry::Function(f),
+            entry,
             _pml4: pml4,
             pml4_addr,
             stack_frame: None,
