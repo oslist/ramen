@@ -122,17 +122,13 @@ impl Default {
         let ep_0 = &mut cx.input.device_mut().ep_0;
         ep_0.set_endpoint_type(EndpointType::Control);
 
-        ep_0.set_max_packet_size(self.get_max_packet_size());
+        ep_0.set_max_packet_size(self.normal_max_packet_size());
         ep_0.set_dequeue_ptr(self.sender.ring_addr());
         ep_0.set_dequeue_cycle_state(CycleBit::new(true));
         ep_0.set_error_count(3);
     }
 
-    // TODO: This function does not check the actual port speed, instead it uses the normal
-    // correspondence between PSI and the port speed.
-    // The actual port speed is listed on the xHCI supported protocol capability.
-    // Check the capability and fetch the actual port speed. Then return the max packet size.
-    fn get_max_packet_size(&self) -> u16 {
+    fn normal_max_packet_size(&self) -> u16 {
         let psi = xhci::handle_registers(|r| {
             let p = r.operational.port_registers.read((self.port_id - 1).into());
             p.port_sc.port_speed()
