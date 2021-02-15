@@ -59,17 +59,23 @@ pub fn try_spawn(port_idx: u8) -> Result<(), spawner::PortNotConnected> {
 }
 
 async fn task(port: Port) {
+    let port_id = port.index;
     let mut eps = init_port_and_slot(port).await;
     eps.init().await;
 
     match eps.ty() {
         (3, 1, 2) => {
+            info!("Port {}: mouse", port_id);
             multitask::add(Task::new_poll(class_driver::mouse::task(eps)));
         }
         (3, 1, 1) => {
+            info!("Port {}: keyboard", port_id);
             multitask::add(Task::new_poll(class_driver::keyboard::task(eps)));
         }
-        (8, _, _) => multitask::add(Task::new(class_driver::mass_storage::task(eps))),
+        (8, _, _) => {
+            info!("Port {}: usb mass storage", port_id);
+            multitask::add(Task::new(class_driver::mass_storage::task(eps)));
+        }
         t => warn!("Unknown device: {:?}", t),
     }
 }
