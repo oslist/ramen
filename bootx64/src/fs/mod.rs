@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+mod elf;
 mod root_dir;
 
 use common::constant::KERNEL_ADDR;
