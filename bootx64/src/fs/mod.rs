@@ -2,6 +2,7 @@
 
 mod elf;
 mod root_dir;
+mod size;
 
 use common::constant::KERNEL_ADDR;
 use core::{
@@ -22,8 +23,6 @@ use uefi::{
     ResultExt,
 };
 use x86_64::{structures::paging::Size4KiB, PhysAddr, VirtAddr};
-
-mod size;
 
 pub fn deploy(bs: &boot::BootServices, name: &'static str) -> (PhysAddr, Bytes) {
     let mut root_dir = root_dir::open(bs);
