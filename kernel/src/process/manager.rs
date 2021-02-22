@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-use super::{collections, collections::woken_pid, switch, Privilege, Process};
 use crate::tss::TSS;
+
+use super::{collections, collections::woken_pid, switch, Privilege, Process};
 use common::constant::INTERRUPT_STACK;
 use conquer_once::spin::Lazy;
 use crossbeam_queue::ArrayQueue;
@@ -27,7 +28,6 @@ pub fn main() {
 }
 
 pub fn init() {
-    set_temporary_stack_frame();
     push_process_to_queue(Process::user(main));
 }
 
@@ -54,7 +54,7 @@ pub(super) fn send_message(m: Message) {
 }
 
 pub(super) fn set_temporary_stack_frame() {
-    TSS.lock().interrupt_stack_table[0] = INTERRUPT_STACK;
+    TSS.lock().privilege_stack_table[0] = INTERRUPT_STACK;
 }
 
 fn push_process_to_queue(p: Process) {
