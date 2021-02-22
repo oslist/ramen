@@ -2,7 +2,6 @@
 
 mod elf;
 mod root_dir;
-mod size;
 
 use common::constant::KERNEL_ADDR;
 use core::{
