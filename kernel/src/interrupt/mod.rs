@@ -2,5 +2,9 @@
 
 pub mod apic;
 pub mod handler;
-pub mod idt;
+mod idt;
 pub mod timer;
+
+pub fn init() {
+    idt::init();
+}

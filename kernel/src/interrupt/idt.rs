@@ -21,6 +21,6 @@ static IDT: Lazy<InterruptDescriptorTable> = Lazy::new(|| {
     idt
 });
 
-pub fn init() {
+pub(super) fn init() {
     IDT.load();
 }

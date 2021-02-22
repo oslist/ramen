@@ -42,7 +42,7 @@ mod tss;
 use common::kernelboot;
 use device::pci::xhci;
 use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
-use interrupt::{apic, idt, timer};
+use interrupt::{apic, timer};
 use mem::allocator::{heap, phys::FrameManager};
 use multitask::{executor::Executor, task::Task};
 use process::Privilege;
@@ -65,7 +65,7 @@ fn init(boot_info: &mut kernelboot::Info) {
 
 fn initialize_in_kernel_mode(boot_info: &mut kernelboot::Info) {
     gdt::init();
-    idt::init();
+    interrupt::init();
 
     // It is bothering to initialize heap memory in the user mode as this is to map the area, which an initialized
     // frame manager is needed.
