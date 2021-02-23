@@ -40,12 +40,9 @@ mod tests;
 mod tss;
 
 use common::kernelboot;
-use device::pci::xhci;
 use futures_intrusive::sync::{GenericMutex, GenericMutexGuard};
 use interrupt::{apic, idt, timer};
 use mem::allocator::{heap, phys::FrameManager};
-use multitask::{executor::Executor, task::Task};
-use process::Privilege;
 use spinning_top::RawSpinlock;
 use terminal::vram;
 pub type Futurelock<T> = GenericMutex<RawSpinlock, T>;
@@ -95,35 +92,10 @@ fn initialize_in_user_mode() {
     gdt::enter_usermode();
 
     process::manager::init();
-    add_processes();
-}
-
-fn add_processes() {
-    process::manager::add(run_tasks, Privilege::User);
-    process::manager::add(ps2_keyboard::main, Privilege::User);
-    process::manager::add(ps2_mouse::main, Privilege::User);
-    process::manager::add(tsukemen::main, Privilege::User);
-
-    if cfg!(feature = "qemu_test") {
-        process::manager::add(tests::main, Privilege::User);
-        process::manager::add(tests::process::kernel_privilege_test, Privilege::Kernel);
-        process::manager::add(tests::process::exit_test, Privilege::User);
-
-        for _ in 0..100 {
-            process::manager::add(tests::process::do_nothing, Privilege::User);
-        }
-    }
 }
 
 fn wait_until_timer_interrupt_happens() -> ! {
     loop {
         syscalls::enable_interrupt_and_halt()
     }
-}
-
-fn run_tasks() {
-    multitask::add(Task::new(xhci::task()));
-
-    let mut executor = Executor::new();
-    executor.run();
 }
